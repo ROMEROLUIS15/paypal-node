@@ -1,7 +1,7 @@
 require('dotenv').config()
 
 const PORT = 3000
-const HOST = 'http://localhost' + PORT
+const HOST = 'http://localhost:' + PORT
 
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID
 const PAYPAL_SECRET_KEY = process.env.PAYPAL_SECRET_KEY

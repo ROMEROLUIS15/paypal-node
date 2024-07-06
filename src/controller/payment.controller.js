@@ -1,7 +1,8 @@
-const { HOST, PAYPAL_API } = require('../config.js')
-const { axios } = require('axios')
+const { HOST, PAYPAL_API, PAYPAL_CLIENT_ID, PAYPAL_SECRET_KEY } = require('../config.js')
+const axios = require('axios')
 
 const createOrder = async(req, res) => {
+    try {
     const order = {
         intent: "CAPTURE",
         purchase_units: [
@@ -20,17 +21,63 @@ const createOrder = async(req, res) => {
             cancel_url: `${HOST}/cancel-payment`,
         }
     }
-   axios.post(`${PAYPAL_API}/v2/checkout/orders`)
+
+    // format the body
+    const params = new URLSearchParams()
+    params.append('grant_type', 'client_credentials')
+
+    // Generate an access token
+    const { data: {access_token} } = await axios.post(`${PAYPAL_API}/v1/oauth2/token`, params, {
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth: {
+            username: PAYPAL_CLIENT_ID,
+            password: PAYPAL_SECRET_KEY
+        }
+    })
+    console.log(access_token)
+
+    // make a request
+    const response = await axios.post(`${PAYPAL_API}/v2/checkout/orders`, order, {
+     headers: {
+         //'Content-Type': 'application/json',
+         Authorization: `Bearer ${access_token}`
+         }
+    })
+    console.log(response.data)
+
+    return res.json(response.data)
+} catch (error) {
+    console.log(error);
+    return res.status(500).json("Something goes wrong");
+  }
 }
 
 
 const captureOrder = async(req, res) => {
-    return res.send('capture Order')
+    try {
+    const { token } = req.query
+
+    const response = await axios.post(`${PAYPAL_API}/v2/checkout/orders/${token}/capture`, {} , {
+        auth: {
+            username: PAYPAL_CLIENT_ID,
+            password: PAYPAL_SECRET_KEY
+        }
+    })
+
+    console.log(response.data)
+
+    res.redirect("/payed.html")
+} catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ message: "Internal Server error" });
+  }
 }
 
 
 const cancelPayment = async(req, res) => {
-    return res.send('cancel Payment')
+    return res.redirect("/")
 }
 
 module.exports = {

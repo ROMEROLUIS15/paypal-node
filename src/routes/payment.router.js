@@ -3,7 +3,7 @@ const {  createOrder, captureOrder, cancelPayment } = require('../controller/pay
 const paymentRouter = express.Router()
 
 paymentRouter.route('/create-order')
-.get(createOrder)
+.post(createOrder)
 
 paymentRouter.route('/capture-order')
 .get(captureOrder)
